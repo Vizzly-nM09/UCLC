@@ -2,155 +2,115 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, User, Facebook, Github, Linkedin, Eye, EyeOff, Loader2 } from 'lucide-react';
-
-// --- DUMMY DATABASE ---
-const dummyUsers = [
-  { username: 'alan', password: '123' },
-  { username: 'patrick', password: '123' },
-  { username: 'admin', password: '123' },
-];
+import { signIn } from 'next-auth/react'; // ✅ Pakai fungsi bawaan NextAuth
+import { Lock, User, Loader2, AlertCircle } from 'lucide-react';
+import { toast } from 'react-hot-toast'; // Opsional jika mau toast error
 
 export default function LoginPage() {
-  const [isSignUp, setIsSignUp] = useState(false);
-  
-  // State Login
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
+  const [error, setError] = useState('');
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     setIsLoading(true);
+    setError('');
 
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      // ✅ Panggil NextAuth Credentials
+      const res = await signIn('credentials', {
+        email: username, // Sesuaikan dengan field di auth.ts (email/username)
+        password: password,
+        redirect: false, // Kita handle redirect manual biar mulus
+      });
 
-    const user = dummyUsers.find(
-      (u) => u.username === username && u.password === password
-    );
-
-    if (user) {
-     router.push('/dashboard?login=success'); 
-    } else {
-      setError('Username atau password salah!');
+      if (res?.error) {
+        setError('Login Gagal! Periksa Username/Password.');
+        setIsLoading(false);
+      } else {
+        // Redirect ke dashboard dengan query param untuk trigger toast sukses
+        router.push('/dashboard?login=success');
+        router.refresh(); // Refresh agar session terupdate
+      }
+    } catch (err) {
+      setError('Terjadi kesalahan jaringan.');
       setIsLoading(false);
     }
   };
 
-  const handleRegister = (e: React.FormEvent) => {
-    e.preventDefault();
-    alert("Fitur registrasi belum aktif. Silakan login dengan akun dummy.");
-  };
-
   return (
-    // --- UPDATE: Background dibuat permanen gelap (#121212) ---
-    <div className="flex items-center justify-center min-h-screen bg-[#121212] font-sans p-4">
+    // Background dengan gradasi halus agar tidak "polos"
+    <div className="flex items-center justify-center min-h-screen bg-[#121212] font-sans p-4 relative overflow-hidden">
       
-      {/* --- CONTAINER UTAMA (Card) --- */}
-      {/* --- UPDATE: Card background dibuat permanen gelap (#1c1c24) --- */}
-      <div className={`relative overflow-hidden w-[850px] max-w-full min-h-[550px] bg-[#1c1c24] rounded-[30px] shadow-[0_14px_28px_rgba(0,0,0,0.5),0_10px_10px_rgba(0,0,0,0.22)] transition-all duration-500`}>
+      {/* Dekorasi Background (Glow Effect) */}
+      <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-purple-600/20 rounded-full blur-[100px]" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-blue-600/20 rounded-full blur-[100px]" />
+
+      {/* CARD LOGIN UTAMA */}
+      <div className="relative w-full max-w-md bg-[#1c1c24]/90 backdrop-blur-xl border border-white/5 rounded-[30px] p-8 shadow-[0_0_40px_rgba(0,0,0,0.3)] animate-in fade-in zoom-in duration-500">
         
-        {/* FORM SIGN UP (KIRI) */}
-        <div className={`absolute top-0 h-full transition-all duration-600 ease-in-out left-0 w-1/2 flex items-center justify-center z-10
-          ${isSignUp ? 'translate-x-full opacity-100 z-50' : 'opacity-0'}
-        `}>
-          <form onSubmit={handleRegister} className="bg-[#1c1c24] flex flex-col items-center justify-center h-full w-full px-10 text-center">
-            <h1 className="text-3xl font-bold mb-4 text-white">Create Account</h1>
-        
-            <span className="text-xs text-gray-400 mb-6">or use your email for registration</span>
-            <InputGroup icon={User} type="text" placeholder="Name" />
-            <InputGroup icon={Mail} type="email" placeholder="Email" />
-            <InputGroup icon={Lock} type="password" placeholder="Password" />
-            <button className="mt-4 bg-[#6C5DD3] text-white text-xs font-bold py-3 px-12 rounded-full uppercase tracking-wider hover:bg-[#5a4cb3] active:scale-95 transition-transform shadow-lg shadow-purple-900/30">Sign Up</button>
-          </form>
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2">Selamat Datang</h1>
+          <p className="text-gray-400 text-sm">Masuk untuk mengakses Dashboard Admin UIB</p>
         </div>
 
-        {/* FORM SIGN IN (KANAN) */}
-        <div className={`absolute top-0 h-full transition-all duration-600 ease-in-out left-0 w-1/2 z-20 flex items-center justify-center
-          ${isSignUp ? 'translate-x-full opacity-0' : 'translate-x-0 opacity-100'}
-        `}>
-          <form onSubmit={handleLogin} className="bg-[#1c1c24] flex flex-col items-center justify-center h-full w-full px-10 text-center">
-            <h1 className="text-3xl font-bold mb-4 text-white">Sign in</h1>
-           
+        <form onSubmit={handleLogin} className="flex flex-col gap-5">
+            
             {/* Input Username */}
-            <div className="relative w-full mb-4 group text-left">
-               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
-                  <User size={18} />
+            <div className="group">
+               <div className="relative">
+                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-[#6C5DD3] transition-colors">
+                    <User size={20} />
+                 </div>
+                 <input 
+                    type="text" 
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="w-full bg-[#25252d] text-white text-sm py-4 pl-12 pr-4 rounded-xl border border-transparent outline-none focus:border-[#6C5DD3] focus:ring-1 focus:ring-[#6C5DD3] transition-all placeholder-gray-600"
+                    placeholder="Username / Email"
+                    required
+                 />
                </div>
-               {/* --- UPDATE: Input background gelap & text putih --- */}
-               <input 
-                  type="text" 
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="bg-[#25252d] border-none text-sm w-full py-3 pl-10 pr-3 rounded-lg outline-none focus:ring-2 focus:ring-[#6C5DD3] transition-all text-white placeholder-gray-500"
-                  placeholder="Username"
-                  required
-               />
             </div>
 
             {/* Input Password */}
-            <div className="relative w-full mb-2 group text-left">
-               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
-                  <Lock size={18} />
+            <div className="group">
+               <div className="relative">
+                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-[#6C5DD3] transition-colors">
+                    <Lock size={20} />
+                 </div>
+                 <input 
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-[#25252d] text-white text-sm py-4 pl-12 pr-4 rounded-xl border border-transparent outline-none focus:border-[#6C5DD3] focus:ring-1 focus:ring-[#6C5DD3] transition-all placeholder-gray-600"
+                    placeholder="Password"
+                    required
+                 />
                </div>
-               {/* --- UPDATE: Input background gelap & text putih --- */}
-               <input 
-                  type={showPassword ? "text" : "password"} 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="bg-[#25252d] border-none text-sm w-full py-3 pl-10 pr-10 rounded-lg outline-none focus:ring-2 focus:ring-[#6C5DD3] transition-all text-white placeholder-gray-500"
-                  placeholder="Password"
-                  required
-               />
-               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-[#6C5DD3] cursor-pointer">
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-               </button>
             </div>
 
-            {error && <div className="w-full text-left mb-2 animate-in fade-in"><span className="text-xs text-red-400 font-semibold ml-1">⚠️ {error}</span></div>}
-            
-            <a href="#" className="text-xs text-gray-400 mt-2 mb-6 hover:underline hover:text-[#6C5DD3] w-full text-right">Forgot your password?</a>
-            
-            <button disabled={isLoading} className={`bg-[#6C5DD3] text-white text-xs font-bold py-3 px-12 rounded-full uppercase tracking-wider transition-all shadow-lg shadow-purple-900/30 flex items-center gap-2 ${isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-[#5a4cb3] active:scale-95 hover:shadow-purple-500/50'}`}>
-              {isLoading ? <Loader2 size={16} className="animate-spin" /> : null}
-              {isLoading ? 'Signing In...' : 'Sign In'}
+            {/* Error Message */}
+            {error && (
+              <div className="flex items-center gap-2 text-red-400 text-xs bg-red-400/10 p-3 rounded-lg border border-red-400/20">
+                <AlertCircle size={16} />
+                <span>{error}</span>
+              </div>
+            )}
+
+            {/* Button Login */}
+            <button 
+              disabled={isLoading} 
+              className={`mt-2 w-full bg-gradient-to-r from-[#6C5DD3] to-[#8B72EA] text-white font-bold py-4 rounded-xl shadow-lg shadow-purple-900/20 hover:shadow-purple-500/40 transform transition-all active:scale-[0.98] flex items-center justify-center gap-2
+              ${isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:brightness-110'}`}
+            >
+              {isLoading ? <Loader2 size={20} className="animate-spin" /> : 'Masuk Dashboard'}
             </button>
-          </form>
-        </div>
-
-        {/* OVERLAY PANEL (SLIDING) - Tetap Ungu */}
-        <div className={`absolute top-0 left-1/2 w-1/2 h-full overflow-hidden transition-transform duration-600 ease-in-out z-100 ${isSignUp ? '-translate-x-full' : ''}`}>
-          <div className={`bg-gradient-to-r from-[#6C5DD3] to-[#8B72EA] text-white relative -left-full h-full w-[200%] transform transition-transform duration-600 ease-in-out ${isSignUp ? 'translate-x-1/2' : 'translate-x-0'}`}>
-            <div className={`absolute top-0 flex flex-col items-center justify-center w-1/2 h-full px-10 text-center transform transition-transform duration-600 ease-in-out ${isSignUp ? 'translate-x-0' : '-translate-x-[20%]'}`}>
-              <h1 className="text-3xl font-bold mb-4">Welcome Back!</h1>
-              <p className="text-sm mb-8 leading-relaxed font-light text-purple-100">To keep connected with us please login with your personal info</p>
-              <button onClick={() => { setIsSignUp(false); setError(''); }} className="bg-transparent border border-white text-white text-xs font-bold py-3 px-12 rounded-full uppercase tracking-wider hover:bg-white hover:text-[#6C5DD3] transition-all active:scale-95">Sign In</button>
-            </div>
-            <div className={`absolute top-0 right-0 flex flex-col items-center justify-center w-1/2 h-full px-10 text-center transform transition-transform duration-600 ease-in-out ${isSignUp ? 'translate-x-[20%]' : 'translate-x-0'}`}>
-              <h1 className="text-3xl font-bold mb-4">Hello, Friend!</h1>
-              <p className="text-sm mb-8 leading-relaxed font-light text-purple-100">Enter your personal details and start journey with us</p>
-              <button onClick={() => { setIsSignUp(true); setError(''); }} className="bg-transparent border border-white text-white text-xs font-bold py-3 px-12 rounded-full uppercase tracking-wider hover:bg-white hover:text-[#6C5DD3] transition-all active:scale-95">Sign Up</button>
-            </div>
-          </div>
-        </div>
+        </form>
 
       </div>
     </div>
   );
 }
-
-// --- KOMPONEN KECIL (Update warna untuk dark mode permanen) ---
-
-
-const InputGroup = ({ icon: Icon, type, placeholder }: any) => (
-  <div className="relative w-full mb-4 group text-left">
-    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500"><Icon size={18} /></div>
-    {/* Update input background dan text color jadi gelap */}
-    <input type={type} placeholder={placeholder} className="bg-[#25252d] border-none text-sm w-full py-3 pl-10 pr-3 rounded-lg outline-none focus:ring-2 focus:ring-[#6C5DD3] transition-all text-white placeholder-gray-500" />
-  </div>
-);

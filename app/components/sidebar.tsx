@@ -105,7 +105,7 @@ export default function Sidebar({
   return (
     <aside 
       className={`fixed top-0 left-0 h-screen bg-[#1c1c24] flex flex-col z-20 font-medium border-r border-gray-800 
-      transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] shadow-2xl
+      transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] shadow-3xl
       ${isCollapsed ? 'w-20' : 'w-64'}
       `}
     >
@@ -150,7 +150,7 @@ export default function Sidebar({
           <MenuLink href="/up-score-mandarin" name="Up Score Mandarin" icon={Icons.Upload} isCollapsed={isCollapsed} />
       </nav>
 
-      {/* FOOTER */}
+      {/* FOOTER */}  
       <div className="p-4 border-t border-gray-800 space-y-2">
           <button className={`flex items-center gap-3 px-2 py-2 text-gray-400 hover:text-white transition-colors w-full rounded-lg hover:bg-[#2c2c35] ${isCollapsed ? 'justify-center' : ''}`}>
              <Icons.Help /> 

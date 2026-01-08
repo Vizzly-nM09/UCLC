@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 
-// --- IMPORT DARI SHADCN ---
+// --- IMPORT DARI SHADCN (Pastikan path ini benar sesuai projectmu) ---
 import {
   Table,
   TableBody,
@@ -44,14 +44,38 @@ interface StudentsTableProps {
 export const StudentsTable = ({ data, sortConfig, requestSort, darkMode }: StudentsTableProps) => {
     const [searchTerm, setSearchTerm] = useState('');
 
+    // ✅ LOGIC FILTER: PENCARIAN CERDAS
     const filteredData = useMemo(() => {
         if (!searchTerm) return data;
-        return data.filter((student) => 
-            student.name.toLowerCase().startsWith(searchTerm.toLowerCase())
-        );
+        
+        const lowerSearch = searchTerm.toLowerCase().trim();
+        const searchNumber = parseInt(lowerSearch);
+        const isNumberSearch = !isNaN(searchNumber);
+
+        return data.filter((student) => {
+            // 1. Logic Angka Range (misal ketik "900" cari score 900-999)
+            if (isNumberSearch && lowerSearch.endsWith('00') && lowerSearch.length === 3) {
+                if (student.score >= searchNumber && student.score < searchNumber + 100) {
+                    return true;
+                }
+            }
+
+            // 2. Logic Text Standar
+            const combinedString = [
+                student.name,
+                student.npm,
+                student.prodi,
+                student.type,
+                student.status,
+                student.date,
+                student.score.toString(), 
+            ].join(' ').toLowerCase();
+
+            return combinedString.includes(lowerSearch);
+        });
     }, [data, searchTerm]);
 
-    // ✅ UPDATE: 'Aksi' Pindah ke Depan (Index 0)
+    // ✅ Header Table (Kolom Aksi di paling kiri)
     const tableHeaders = [' ',  'NPM', 'Nama', 'Prodi', 'Tipe', 'Score', 'Read', 'Struct', 'Listen', 'Status', 'Tanggal'];
     const tableKeys = ['action', 'npm', 'name', 'prodi', 'type', 'score', 'reading', 'structure', 'listening', 'status', 'date'];
 
@@ -70,7 +94,7 @@ export const StudentsTable = ({ data, sortConfig, requestSort, darkMode }: Stude
                     </div>
                     <input 
                         type="text" 
-                        placeholder="Cari nama depan..." 
+                        placeholder="Cari nama, skor (900), npm..." 
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className={`block w-full p-2 pl-10 text-xs rounded-lg border outline-none focus:ring-2 focus:ring-[#6C5DD3] transition-all
@@ -93,7 +117,7 @@ export const StudentsTable = ({ data, sortConfig, requestSort, darkMode }: Stude
                             }
                         `}>
                             {tableHeaders.map((head, i) => {
-                                const isAction = head === 'Aksi';
+                                const isAction = head === ' ';
                                 return (
                                     <TableHead 
                                         key={i} 
@@ -133,10 +157,13 @@ export const StudentsTable = ({ data, sortConfig, requestSort, darkMode }: Stude
                                     `}
                                     style={{ animationDelay: `${idx * 30}ms` }}
                                 >
-                                    
-                                    {/* ✅ 1. CELL AKSI (SEKARANG DI DEPAN) */}
+                                    {/* 1. CELL AKSI (LINK MATA) */}
                                     <TableCell className="px-4 py-3 text-center">
-                                        <Link href={`/mahasiswa/${mhs.npm}`}>
+                                         {/* ⚠️ CEK HREF INI:
+                                            - Kalau folder mahasiswa di dalam dashboard: `/dashboard/mahasiswa/${mhs.npm}`
+                                            - Kalau folder mahasiswa sejajar dashboard: `/mahasiswa/${mhs.npm}`
+                                          */}
+                                         <Link href={`/dashboard/mahasiswa/${mhs.npm}`}>
                                             <div className={`inline-flex items-center justify-center p-2 rounded-lg border transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md hover:-translate-y-0.5
                                                 ${darkMode 
                                                     ? 'bg-[#25252d] border-gray-700 text-gray-400 hover:text-white hover:border-[#6C5DD3]' 
@@ -148,14 +175,10 @@ export const StudentsTable = ({ data, sortConfig, requestSort, darkMode }: Stude
                                         </Link>
                                     </TableCell>
 
-                                    {/* 2. CELL NPM */}
+                                    {/* DATA LAINNYA */}
                                     <TableCell className={`px-4 py-3 font-medium whitespace-nowrap ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{mhs.npm}</TableCell>
-
-                                    {/* 3. CELL NAMA */}
                                     <TableCell className={`px-4 py-3 font-bold whitespace-nowrap ${darkMode ? 'text-white' : 'text-gray-800'}`}>{mhs.name}</TableCell>
-                                    
                                     <TableCell className="px-4 py-3 whitespace-nowrap text-muted-foreground">{mhs.prodi}</TableCell>
-                                    
                                     <TableCell className="px-4 py-3 whitespace-nowrap">
                                         <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border 
                                             ${mhs.type === 'TOEIC' ? 'bg-purple-50 text-purple-600 border-purple-200' : 
@@ -165,21 +188,17 @@ export const StudentsTable = ({ data, sortConfig, requestSort, darkMode }: Stude
                                             {mhs.type}
                                         </span>
                                     </TableCell>
-
                                     <TableCell className={`px-4 py-3 font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>{mhs.score}</TableCell>
                                     <TableCell className="px-4 py-3 text-muted-foreground">{mhs.reading}</TableCell>
                                     <TableCell className="px-4 py-3 text-muted-foreground">{mhs.structure}</TableCell>
                                     <TableCell className="px-4 py-3 text-muted-foreground">{mhs.listening}</TableCell>
-
                                     <TableCell className="px-4 py-3 whitespace-nowrap">
                                         <span className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold w-fit ${mhs.status === 'Lulus' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                                             <span className={`w-1.5 h-1.5 rounded-full ${mhs.status === 'Lulus' ? 'bg-green-500' : 'bg-red-500'}`}></span>
                                             {mhs.status}
                                         </span>
                                     </TableCell>
-                                    
                                     <TableCell className="px-4 py-3 whitespace-nowrap text-muted-foreground">{mhs.date}</TableCell>
-
                                 </TableRow>
                             ))
                         ) : (
@@ -188,7 +207,7 @@ export const StudentsTable = ({ data, sortConfig, requestSort, darkMode }: Stude
                                     <div className="flex flex-col items-center justify-center opacity-50">
                                         <Icons.SearchEmpty />
                                         <p className="text-gray-500 font-medium text-xs mt-2">
-                                            {searchTerm ? `Tidak ada nama yang berawalan "${searchTerm}"` : 'Tidak ada data yang cocok.'}
+                                            {searchTerm ? `Tidak ada data untuk "${searchTerm}"` : 'Tidak ada data yang cocok.'}
                                         </p>
                                     </div>
                                 </TableCell>
