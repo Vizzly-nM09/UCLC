@@ -1,49 +1,46 @@
-// 📂 app/dashboard/layout.tsx
 'use client';
 
 import React, { useState } from 'react';
-import Sidebar from '../components/sidebar'; 
-import { ThemeProvider, useTheme } from '@/app/context/ThemeContext'; // 1. Import Context
+import Sidebar from '../components/sidebar'; // Pastikan path import benar
+import { Toaster } from 'react-hot-toast';
+import { useSession } from 'next-auth/react';
 
-// Kita butuh komponen wrapper kecil untuk memisahkan Logic Context
-function DashboardContent({ children }: { children: React.ReactNode }) {
-  const { darkMode, setDarkMode } = useTheme(); // 2. Pakai Context
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { data: session } = useSession();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [darkMode, setDarkMode] = useState(true); // State dark mode global (bisa dipindah ke Context nanti)
 
   return (
-    <div className={`flex h-screen w-full overflow-hidden font-sans transition-colors duration-300 ${darkMode ? 'bg-[#1c1c24]' : 'bg-[#f4f7fe]'}`}>
-      
-      {/* Sidebar dikendalikan oleh Global Context sekarang */}
+    // Container utama: Flex Row agar Sidebar dan Konten bersebelahan
+    <div className={`flex h-screen w-full ${darkMode ? 'bg-[#121212]' : 'bg-gray-50'} overflow-hidden transition-colors duration-300`}>
+      <Toaster position="top-right" />
+
+      {/* Sidebar ditaruh di sini, sekali load saja */}
       <Sidebar 
           darkMode={darkMode} 
           setDarkMode={setDarkMode} 
           isCollapsed={isCollapsed} 
           setIsCollapsed={setIsCollapsed} 
-          username="Admin UIB" 
-          role="SUPER ADMIN"
+          username={session?.user?.name || "Memuat..."} 
+          role="ADMINISTRATOR"
       />
 
-      <div className={`flex-1 flex flex-col h-full transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] 
-          ${isCollapsed ? 'ml-20' : 'ml-64'}`
-      }>
-        <div className={`flex-1 m-0 flex flex-col min-w-0 overflow-hidden relative shadow-[-10px_0_30px_rgba(0,0,0,0.3)] rounded-l-[40px] 
-            ${darkMode ? 'bg-[#13131a]' : 'bg-[#f4f7fe]'}`
-        }>
-            <main className="flex-1 overflow-y-auto min-w-0">
-               {children} 
-            </main>
+      {/* Konten Page (Children) */}
+      {/* flex-1 artinya: Ambil semua sisa lebar yang tersedia setelah sidebar */}
+      {/* Tidak perlu margin manual (ml-64) karena sudah diurus oleh Flexbox */}
+      <main className="flex-1 flex flex-col h-full overflow-hidden relative">
+        {/* Kita clone element agar bisa pass props darkMode ke children (opsional jika pakai Context) */}
+        {/* Untuk simplifikasi, kita render children langsung di dalam container yang bisa discroll */}
+        <div className="flex-1 overflow-y-auto p-2"> 
+           {/* Clone element trick atau Context API disarankan untuk passing darkMode ke page. 
+               Tapi agar simpel, anggap children me-render kontennya di sini */}
+           {children}
         </div>
-      </div>
+      </main>
     </div>
-  );
-}
-
-// Export Default Utama
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  return (
-    // 3. Bungkus semuanya dengan Provider
-    <ThemeProvider>
-      <DashboardContent>{children}</DashboardContent>
-    </ThemeProvider>
   );
 }
