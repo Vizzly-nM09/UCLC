@@ -26,7 +26,7 @@ export default function DashboardLayout({
           isCollapsed={isCollapsed} 
           setIsCollapsed={setIsCollapsed} 
           username={session?.user?.name || "Memuat..."} 
-          role="ADMINISTRATOR"
+          role="ADMIN"
       />
 
       {/* Konten Page (Children) */}
