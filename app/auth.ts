@@ -1,57 +1,75 @@
-import NextAuth from "next-auth"
-import Credentials from "next-auth/providers/credentials"
+// 📂 app/auth.ts
+import NextAuth from "next-auth";
+import Credentials from "next-auth/providers/credentials";
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Credentials({
+      // Nama provider, muncul di UI default (jika dipakai)
       name: "Credentials",
       credentials: {
-        email: { label: "Username", type: "text" },
+        username: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" },
       },
+      // Logic Login disini
       authorize: async (credentials) => {
-        // --- LOGIC LOGIN SEDERHANA (Hardcode) ---
-        // Nanti bisa diganti pakai Database Prisma kalau sudah siap
-        
-        const users = [
-            { id: "1", name: "Alan", email: "alan", password: "123", role: "admin" },
-            { id: "2", name: "Patrick", email: "patrick", password: "123", role: "user" },
-            { id: "3", name: "Admin UIB", email: "admin", password: "123", role: "superadmin" },
-        ];
+        try {
+          // 1. Validasi input dasar
+          if (!credentials?.username || !credentials?.password) {
+            return null;
+          }
 
-        const user = users.find(
-            (u) => u.email === credentials.email && u.password === credentials.password
-        );
+          // 2. Fetch ke Backend API kamu (sesuaikan URL-nya)
+          // Contoh: const res = await fetch("https://api.kampus.ac.id/login", { ... })
+          
+          // --- SIMULASI MOCK DATA (Ganti dengan Fetch API aslimu) ---
+          const user = {
+            id: "1",
+            name: "Admin UCLC",
+            email: "admin@uclc.ac.id",
+            role: "ADMIN", // Custom field (perlu setup types, lihat langkah 3)
+            accessToken: "dummy-jwt-token-from-backend",
+          };
 
-        if (user) {
-          // Kembalikan data user agar tersimpan di session
-          return user; 
+          // 3. Cek hasil dari backend
+          if (user) {
+            // Berhasil login -> Return object user
+            return user;
+          } else {
+            // Gagal login
+            return null;
+          }
+        } catch (error) {
+          console.error("Auth Error:", error);
+          return null;
         }
-
-        return null; // Login gagal
       },
     }),
   ],
-  pages: {
-    signIn: "/", // Kalau user belum login, tendang ke halaman depan
-  },
+  // Callback untuk mengatur Token & Session
   callbacks: {
-    // Callback ini supaya Role & ID user terbawa ke browser/session
+    // 1. JWT Callback: Jalan saat login sukses. Kita simpan data user ke token.
     async jwt({ token, user }) {
       if (user) {
-        token.role = user.role
-        token.id = user.id
+        token.id = user.id;
+        token.role = (user as any).role;
+        token.accessToken = (user as any).accessToken;
       }
-      return token
+      return token;
     },
+    // 2. Session Callback: Jalan saat client butuh data session. Kita copy dari token ke session.
     async session({ session, token }) {
       if (session.user) {
-        // @ts-ignore
-        session.user.role = token.role
-        // @ts-ignore
-        session.user.id = token.id
+        session.user.id = token.id as string;
+        // Extend type session di langkah 3 agar tidak error TypeScript
+        (session.user as any).role = token.role; 
+        (session.user as any).accessToken = token.accessToken;
       }
-      return session
+      return session;
     },
   },
-})
+  pages: {
+    signIn: '/', // Redirect jika unauthenticated (Custom Login Page)
+  },
+  secret: process.env.AUTH_SECRET, // Wajib ada di .env
+});

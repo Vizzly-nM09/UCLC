@@ -5,33 +5,56 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 type ThemeContextType = {
   darkMode: boolean;
-  setDarkMode: (value: boolean) => void;
+  toggleDarkMode: () => void;
 };
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  // Cek local storage biar user refresh halaman, dark mode gak hilang
   const [darkMode, setDarkMode] = useState(false);
+  const [mounted, setMounted] = useState(false); // Untuk menghindari hydration mismatch
 
   useEffect(() => {
-    const isDark = localStorage.getItem('theme') === 'dark';
-    setDarkMode(isDark);
+    setMounted(true);
+    // Cek local storage atau preferensi sistem saat pertama load
+    const savedTheme = localStorage.getItem('theme');
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
+      setDarkMode(true);
+      document.documentElement.classList.add('dark');
+    } else {
+      setDarkMode(false);
+      document.documentElement.classList.remove('dark');
+    }
   }, []);
 
-  const toggleDarkMode = (value: boolean) => {
-    setDarkMode(value);
-    localStorage.setItem('theme', value ? 'dark' : 'light');
+  const toggleDarkMode = () => {
+    setDarkMode((prev) => {
+      const newMode = !prev;
+      if (newMode) {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+      }
+      return newMode;
+    });
   };
 
+  // Jangan render apapun sampai mounted agar tidak error hydration
+  if (!mounted) {
+    return <>{children}</>;
+  }
+
   return (
-    <ThemeContext.Provider value={{ darkMode, setDarkMode: toggleDarkMode }}>
+    <ThemeContext.Provider value={{ darkMode, toggleDarkMode }}>
       {children}
     </ThemeContext.Provider>
   );
 }
 
-// Hook biar gampang dipanggil di mana aja
 export function useTheme() {
   const context = useContext(ThemeContext);
   if (context === undefined) {

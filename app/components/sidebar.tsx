@@ -2,7 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation'; // 1. Tambah useRouter
+import { usePathname, useRouter } from 'next/navigation';
+import { signOut } from 'next-auth/react'; 
 
 // --- 1. INTERFACES ---
 interface SidebarProps {
@@ -159,7 +160,7 @@ export default function Sidebar({
           
           {/* --- TOMBOL LOGOUT AKTIF --- */}
           <button 
-             onClick={handleLogout} // Panggil fungsi Logout
+             onClick={() => signOut({ callbackUrl: "/" })} // 👈 Ini akan hapus cookies & hard redirect ke '/'
              className={`flex items-center gap-3 px-2 py-2 text-gray-400 hover:text-red-400 transition-colors w-full rounded-lg hover:bg-[#2c2c35] ${isCollapsed ? 'justify-center' : ''}`}
           >
              <Icons.Logout /> 
