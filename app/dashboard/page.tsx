@@ -7,7 +7,7 @@ import { Bar } from 'react-chartjs-2';
 
 // Import Internal
 import { useTheme } from '@/app/context/ThemeContext';
-import { Icons } from '@/lib/icon'; // ✅ Pastikan namanya icons (jamak)
+import { Icons } from '@/lib/icons'; // ✅ Pastikan namanya icons (jamak)
 import { StatCard } from './_components/stat-card';
 import { StudentsTable, initialDummyData } from '../../components/ui/table/student-table';
 
