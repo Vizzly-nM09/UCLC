@@ -1,7 +1,7 @@
 'use client'; 
 
 import React, { useState } from 'react';
-import Sidebar from '../components/sidebar';
+import Sidebar from '../../components/layout/sidebar';
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 

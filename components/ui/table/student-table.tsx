@@ -11,7 +11,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../table"; 
+} from "./table"; 
 
 // --- DATA DUMMY ---
 export const initialDummyData = [

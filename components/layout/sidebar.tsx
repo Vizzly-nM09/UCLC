@@ -7,7 +7,7 @@ import { signOut } from 'next-auth/react';
 
 // --- 1. INTERFACES ---
 interface SidebarProps {
-  darkMode: boolean;
+  darkMode?: boolean;
   setDarkMode: (value: boolean) => void;
   isCollapsed: boolean;
   setIsCollapsed: (value: boolean) => void;

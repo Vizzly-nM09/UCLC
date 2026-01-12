@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import Sidebar from '../components/sidebar'; 
+import Sidebar from '@/components/layout/sidebar'; 
 import { Toaster } from 'react-hot-toast';
 import { useSession } from 'next-auth/react';
 import { useTheme } from '../context/ThemeContext'; // Import context
