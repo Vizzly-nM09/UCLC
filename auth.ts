@@ -1,57 +1,73 @@
-import NextAuth from "next-auth"
-import Credentials from "next-auth/providers/credentials"
+// auth.ts
+import NextAuth from "next-auth";
+import Credentials from "next-auth/providers/credentials";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Credentials({
-      name: "Credentials",
+      name: "alan",
       credentials: {
         email: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" },
       },
-      authorize: async (credentials) => {
-        // --- LOGIC LOGIN SEDERHANA (Hardcode) ---
-        // Nanti bisa diganti pakai Database Prisma kalau sudah siap
-        
-        const users = [
-            { id: "1", name: "Alan", email: "alan", password: "123", role: "admin" },
-            { id: "2", name: "Patrick", email: "patrick", password: "123", role: "user" },
-            { id: "3", name: "Admin UIB", email: "admin", password: "123", role: "superadmin" },
-        ];
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) return null;
 
-        const user = users.find(
-            (u) => u.email === credentials.email && u.password === credentials.password
-        );
+        try {
+          // HUBUNGKAN KE BACKEND ASLI ANDA
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/login`, {
+            method: "POST",
+            body: JSON.stringify({
+              username: credentials.email,
+              password: credentials.password,
+            }),
+            headers: { "Content-Type": "application/json" },
+          });
 
-        if (user) {
-          // Kembalikan data user agar tersimpan di session
-          return user; 
+          const user = await res.json();
+
+          // Jika backend mengembalikan user + token
+          if (res.ok && user) {
+            return user; // Pastikan user berisi accessToken & refreshToken
+          }
+          return null;
+        } catch (error) {
+          return null;
         }
-
-        return null; // Login gagal
       },
     }),
   ],
-  pages: {
-    signIn: "/", // Kalau user belum login, tendang ke halaman depan
-  },
   callbacks: {
-    // Callback ini supaya Role & ID user terbawa ke browser/session
     async jwt({ token, user }) {
+      // Jalankan saat pertama kali login
       if (user) {
-        // token.role = user.role
-        token.id = user.id
+        return {
+          ...token,
+          accessToken: (user as any).accessToken,
+          refreshToken: (user as any).refreshToken,
+          accessTokenExpires: Date.now() + (user as any).expiresIn * 1000,
+          user,
+        };
       }
-      return token
+
+      // Jika token belum expired, gunakan yang lama
+      if (Date.now() < (token.accessTokenExpires as number)) {
+        return token;
+      }
+
+      // Jika expired, panggil fungsi refresh (logika ini bisa ditambahkan nanti)
+      return token; 
     },
     async session({ session, token }) {
-      if (session.user) {
-        // @ts-ignore
-        session.user.role = token.role
-        // @ts-ignore
-        session.user.id = token.id
+      if (token) {
+        session.accessToken = token.accessToken as string;
+        session.user = token.user as any;
       }
-      return session
+      return session;
     },
   },
-})
+  pages: {
+    signIn: "/", // Arahkan ke halaman login kamu (root)
+  },
+  secret: process.env.AUTH_SECRET,
+});

@@ -20,7 +20,6 @@ export default function DashboardLayout({
     // Gunakan class standar tailwind 'bg-background' dan 'text-foreground'.
     // Class ini otomatis berubah warnanya sesuai globals.css saat ada class 'dark' di html.
     <div className="flex h-screen w-full bg-background text-foreground overflow-hidden transition-colors duration-300">
-      <Toaster position="top-right" />
 
       {/* Sidebar */}
       {/* Pastikan Sidebar menerima props yang benar atau handle logic darkmode di dalam Sidebar menggunakan useTheme juga */}
@@ -29,8 +28,6 @@ export default function DashboardLayout({
           setDarkMode={toggleDarkMode} // Pass fungsi toggle dari context
           isCollapsed={isCollapsed} 
           setIsCollapsed={setIsCollapsed} 
-          username={session?.user?.name || "Pengguna"} 
-          role="ADMIN"
       />
 
       {/* Konten Utama */}
