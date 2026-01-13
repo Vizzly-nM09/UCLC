@@ -3,15 +3,18 @@ import { auth } from "@/auth";
 
 export default auth((req) => {
   const isLoggedIn = !!req.auth;
+  const isAuthPage = req.nextUrl.pathname.startsWith("/login");
   const isDashboardPage = req.nextUrl.pathname.startsWith("/dashboard");
 
-  // Logika: Jika mencoba akses dashboard tapi belum login, lempar ke login
   if (isDashboardPage && !isLoggedIn) {
     return Response.redirect(new URL("/login", req.nextUrl));
   }
+
+  if (isAuthPage && isLoggedIn) {
+    return Response.redirect(new URL("/dashboard", req.nextUrl));
+  }
 });
 
-// Jalankan middleware HANYA pada route dashboard
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };

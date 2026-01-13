@@ -8,7 +8,6 @@ import { Bar } from 'react-chartjs-2';
 // Import Internal
 import { useTheme } from '@/app/context/ThemeContext';
 import { Icons } from '@/lib/icons'; // ✅ Pastikan namanya icons (jamak)
-import { StatCard } from './_components/stat-card';
 import { StudentsTable, initialDummyData } from '../../components/ui/table/student-table';
 
 // 🔴 EDIT: PINDAHKAN REGISTRASI INI KE lib/chart-setup.ts
@@ -94,7 +93,6 @@ function DashboardContent() {
 
   return (
     <div className="p-6 space-y-5 animate-in fade-in duration-500">
-      <Toaster />
       {/* Semua di bawah ini adalah UI/Tampilan murni */}
       {/* ... (Header, Filter Card, Stats Grid, Table) ... */}
     </div>
