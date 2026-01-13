@@ -1,34 +1,61 @@
 // auth.ts
 import NextAuth from "next-auth";
-import Credentials from "next-auth/providers/credentials";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { Session } from "next-auth";
+import { JWT } from "next-auth/jwt";
+
+declare module "next-auth" {
+  interface Session {
+    accessToken?: string;
+    user?: any;
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    accessToken?: string;
+    refreshToken?: string;
+    accessTokenExpires?: number;
+    user?: any;
+  }
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
-    Credentials({
-      name: "alan",
+    CredentialsProvider({
+      name: "Credentials",
       credentials: {
         email: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
+        const username = (credentials?.email || (credentials as any)?.username) as string;
+        const password = credentials?.password as string;
+
+        if (!username || !password) return null;
 
         try {
           // HUBUNGKAN KE BACKEND ASLI ANDA
+          console.log("Login attempt:", { username, url: process.env.NEXT_PUBLIC_API_URL });
           const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/login`, {
             method: "POST",
             body: JSON.stringify({
-              username: credentials.email,
-              password: credentials.password,
+              username,
+              password,
             }),
             headers: { "Content-Type": "application/json" },
           });
 
-          const user = await res.json();
+          if (!res.ok) {
+            console.error("Login failed:", res.status, await res.text());
+            return null;
+          }
+
+          const data = await res.json();
 
           // Jika backend mengembalikan user + token
-          if (res.ok && user) {
-            return user; // Pastikan user berisi accessToken & refreshToken
+          if (res.ok && data) {
+            return data; // Pastikan user berisi accessToken & refreshToken
           }
           return null;
         } catch (error) {
@@ -46,7 +73,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           accessToken: (user as any).accessToken,
           refreshToken: (user as any).refreshToken,
           accessTokenExpires: Date.now() + (user as any).expiresIn * 1000,
-          user,
+          user: (user as any).user,
         };
       }
 
