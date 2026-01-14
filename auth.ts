@@ -1,8 +1,6 @@
 // auth.ts
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { Session } from "next-auth";
-import { JWT } from "next-auth/jwt";
 
 declare module "next-auth" {
   interface Session {
@@ -11,40 +9,35 @@ declare module "next-auth" {
   }
 }
 
-declare module "next-auth/jwt" {
-  interface JWT {
-    accessToken?: string;
-    refreshToken?: string;
-    accessTokenExpires?: number;
-    user?: any;
-  }
-}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "Username", type: "text" },
+        email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        const username = (credentials?.email || (credentials as any)?.username) as string;
+        const email = (credentials?.email || (credentials as any)?.email) as string;
         const password = credentials?.password as string;
 
-        if (!username || !password) return null;
+        if (!email || !password) return null;
 
         try {
           // HUBUNGKAN KE BACKEND ASLI ANDA
-          console.log("Login attempt:", { username, url: process.env.NEXT_PUBLIC_API_URL });
-          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/login`, {
+          console.log("Login attempt:", { email, url: process.env.NEXT_PUBLIC_API_URL }); 
+          const res = await fetch(`http://192.168.203.10:8080/v1/login`, {
             method: "POST",
             body: JSON.stringify({
-              username,
-              password,
+              email: credentials.email,
+              password: credentials.password, 
             }),
             headers: { "Content-Type": "application/json" },
           });
+          console.log("Login response:", res);
+
+          const user = await res.json();
 
           if (!res.ok) {
             console.error("Login failed:", res.status, await res.text());
@@ -94,7 +87,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   pages: {
-    signIn: "/", // Arahkan ke halaman login kamu (root)
+    signIn: "/", 
   },
-  secret: process.env.AUTH_SECRET,
+  secret: "jHyqo3/15vQXMhgGSwhIacIQuQIC+X6ZvmI6BNh12QA=",
 });
