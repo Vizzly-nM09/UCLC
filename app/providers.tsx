@@ -1,13 +1,12 @@
 'use client';
 
 import { SessionProvider } from "next-auth/react";
-// 1. Import ThemeProvider yang kamu buat
-import { ThemeProvider } from "./context/ThemeContext"; 
+import { ThemeProvider } from "@/app/context/ThemeContext"; // ✅ Pastikan baris ini ada!
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
-      {/* 2. Pasang ThemeProvider di sini */}
+      {/* 👇 ThemeProvider harus membungkus children di sini */}
       <ThemeProvider>
         {children}
       </ThemeProvider>

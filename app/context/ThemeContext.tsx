@@ -12,20 +12,16 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [darkMode, setDarkMode] = useState(false);
-  const [mounted, setMounted] = useState(false); // Untuk menghindari hydration mismatch
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    // Cek local storage atau preferensi sistem saat pertama load
     const savedTheme = localStorage.getItem('theme');
     const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     
     if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
       setDarkMode(true);
       document.documentElement.classList.add('dark');
-    } else {
-      setDarkMode(false);
-      document.documentElement.classList.remove('dark');
     }
   }, []);
 
@@ -43,14 +39,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  // Jangan render apapun sampai mounted agar tidak error hydration
-  if (!mounted) {
-    return <>{children}</>;
-  }
-
+  // ✅ SOLUSI: Selalu render Provider agar useTheme() di dashboard tidak error.
+  // Gunakan div transparan sementara agar tidak ada "kedipan" warna (flicker)
   return (
     <ThemeContext.Provider value={{ darkMode, toggleDarkMode }}>
-      {children}
+      <div style={{ opacity: mounted ? 1 : 0 }} className="h-full w-full">
+        {children}
+      </div>
     </ThemeContext.Provider>
   );
 }
@@ -58,6 +53,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 export function useTheme() {
   const context = useContext(ThemeContext);
   if (context === undefined) {
+    // Error ini yang bikin layar blank jika Provider tidak ada
     throw Error('useTheme must be used within a ThemeProvider');
   }
   return context;

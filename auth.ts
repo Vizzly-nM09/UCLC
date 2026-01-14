@@ -18,43 +18,45 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
-        const email = (credentials?.email || (credentials as any)?.email) as string;
-        const password = credentials?.password as string;
+      // auth.ts
+async authorize(credentials) {
+  const email = credentials?.email as string;
+  const password = credentials?.password as string;
 
-        if (!email || !password) return null;
+  if (!email || !password) return null;
 
-        try {
-          // HUBUNGKAN KE BACKEND ASLI ANDA
-          console.log("Login attempt:", { email, url: process.env.NEXT_PUBLIC_API_URL }); 
-          const res = await fetch(`http://192.168.203.10:8080/v1/login`, {
-            method: "POST",
-            body: JSON.stringify({
-              email: credentials.email,
-              password: credentials.password, 
-            }),
-            headers: { "Content-Type": "application/json" },
-          });
-          console.log("Login response:", res);
+  try {
+    console.log("Login attempt:", { email, url: "http://192.168.203.10:8080/v1/login" }); 
+    
+    const res = await fetch(`http://192.168.203.10:8080/v1/login`, {
+      method: "POST",
+      body: JSON.stringify({
+        email: email,
+        password: password, 
+      }),
+      headers: { "Content-Type": "application/json" },
+    });
 
-          const user = await res.json();
+    // BACA JSON CUKUP SEKALI SAJA
+    const data = await res.json();
 
-          if (!res.ok) {
-            console.error("Login failed:", res.status, await res.text());
-            return null;
-          }
+    if (!res.ok) {
+      console.error("Login failed:", res.status, data); // Gunakan 'data' yang sudah dibaca jika ada pesan error dari API
+      return null;
+    }
 
-          const data = await res.json();
-
-          // Jika backend mengembalikan user + token
-          if (res.ok && data) {
-            return data; // Pastikan user berisi accessToken & refreshToken
-          }
-          return null;
-        } catch (error) {
-          return null;
-        }
-      },
+    // Jika backend mengembalikan user + token (sesuaikan dengan struktur di Postman)
+    // Pastikan 'data' berisi accessToken, refreshToken, dll.
+    if (data) {
+      return data; 
+    }
+    
+    return null;
+  } catch (error) {
+    console.error("Network or parsing error:", error);
+    return null;
+  }
+}
     }),
   ],
   callbacks: {

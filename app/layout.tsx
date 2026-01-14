@@ -20,15 +20,11 @@ export const metadata: Metadata = {
   description: "Dashboard UCLC",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {/* 👇 Bungkus aplikasi dengan Providers */}
+    <html lang="en" suppressHydrationWarning>
+      <body>
+        {/* SEMUA konten aplikasi (children) harus dibungkus Providers */}
         <Providers>
           {children}
         </Providers>

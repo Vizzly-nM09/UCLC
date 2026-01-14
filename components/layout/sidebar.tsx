@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react'; 
 
+
 // --- 1. INTERFACES ---
 interface SidebarProps {
   darkMode?: boolean;
@@ -96,8 +97,8 @@ export default function Sidebar({
   // --- BARU: Fungsi Logout ---
   const handleLogout = () => {
     // 1. Hapus data sesi (opsional, tergantung logic login kamu)
-    // localStorage.removeItem('token'); 
-    // localStorage.removeItem('userData');
+     localStorage.removeItem('token'); 
+     localStorage.removeItem('userData');
 
     // 2. Redirect ke halaman Login
     router.push('/'); // Atau '/login' jika foldernya login

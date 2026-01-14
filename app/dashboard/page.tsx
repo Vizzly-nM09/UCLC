@@ -73,7 +73,6 @@ function DashboardContent() {
       if (activeFilters.minScore && s.score < parseInt(activeFilters.minScore)) return false;
       return true;
     });
-    // ... logic sort tetap di sini sampai dipindah ke hook
     return data;
   }, [students, activeFilters, sortConfig]);
 

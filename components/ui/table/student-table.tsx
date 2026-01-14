@@ -22,7 +22,7 @@ export const initialDummyData = [
   { id: 4, npm: '2025004', name: 'Doni Tata', prodi: 'Teknologi Informasi', type: 'TOEFL ITP', score: 580, reading: 58, structure: 60, listening: 55, status: 'Lulus', date: '10 Feb 2025' },
   
   // DEMO USER
-  { id: 99, npm: '2532042', name: 'Kevin Li', prodi: 'Teknologi Informasi', type: 'TOEIC', score: 955, reading: 485, structure: 0, listening: 470, status: 'Lulus', date: '09 Aug 2025' }, 
+  { id: 99, npm: '2532042', name: 'Fadhlan', prodi: 'Teknologi Informasi', type: 'TOEIC', score: 955, reading: 485, structure: 0, listening: 470, status: 'Lulus', date: '09 Aug 2025' }, 
 ];
 
 // --- ICONS ---
